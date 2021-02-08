@@ -23,29 +23,29 @@ function App(props) {
   const [coinData, setCoinData] = useState([]);
 
   const componentDidMount = async() => {
-    const response = await axios.get('https://api.coinpaprika.com/v1/coins');
+      const response = await axios.get('https://api.coinpaprika.com/v1/coins');
 
-    const coinIds = response.data.slice(0, COIN_COUNT).map(coin => coin.id);
+      const coinIds = response.data.slice(0, COIN_COUNT).map(coin => coin.id);
 
+      const tickerUrl = 'https://api.coinpaprika.com/v1/tickers/';
+      const promises = coinIds.map(id => axios.get(tickerUrl + id));
 
-    const tickerUrl = 'https://api.coinpaprika.com/v1/tickers/';
-    const promises = coinIds.map(id => axios.get(tickerUrl + id));
+      const coinData = await Promise.all(promises);
+      console.log("CoinData: ", coinData);
 
-    const coinData = await Promise.all(promises);
-    console.log("CoinData: ", coinData);
-
-    const coinPriceData = coinData.map(function(response) {
-      const coin = response.data;
-      return {
-        key: coin.id,
-        name: coin.name,
-        ticker: coin.symbol,
-        balance: 0,
-        price: formatPrice(coin.quotes.USD.price),
-      };
-    });
-    setCoinData(coinPriceData);
+      const coinPriceData = coinData.map(function(response) {
+        const coin = response.data;
+        return {
+          key: coin.id,
+          name: coin.name,
+          ticker: coin.symbol,
+          balance: 0,
+          price: formatPrice(coin.quotes.USD.price),
+        };
+      });
+      setCoinData(coinPriceData);
   }
+
 
   useEffect(() => {
     if (coinData.length === 0) {
@@ -57,24 +57,16 @@ function App(props) {
     }*/
   });
 
-  // componentDidMount = async() => {
-  //   const response = await axios.get('https://api.coinpaprika.com/v1/tickers');
-  //   const coinData = response.data.slice(0, COIN_COUNT).map(coin => {
-  //     return {
-  //       key: coin.id,
-  //       name: coin.name,
-  //       ticker: coin.symbol,
-  //       balance: 0,
-  //       price: parseFloat(Number(coin.quotes.USD.price).toFixed(4)),
-  //     }
-  //   });
-  //   this.setState({coinData});
-  // }
-
 
   const handleBalanceVisibilityChange = () => {
     setShowBalance(oldValue => !oldValue);
   }
+
+
+  const handleAddToBalance = () => {
+    setBalance(oldValue => oldValue + 1200);
+  }
+
 
   const handleRefresh = async (valueChangeId) => {
     const tickerUrl = `https://api.coinpaprika.com/v1/tickers/${valueChangeId}`;
@@ -91,6 +83,70 @@ function App(props) {
     });
     setCoinData(newCoinData);
   }
+
+
+  const handleBuyCoins = async(valueChangeId) => {
+    let newCoinData = [];
+    let numberOfCoins;
+    const tickerUrl = `https://api.coinpaprika.com/v1/tickers/${valueChangeId}`;
+    const response = await axios.get(tickerUrl);
+    const costOfCoin = formatPrice(response.data.quotes.USD.price);
+
+    if (showBalance) {
+      numberOfCoins = prompt("How Many Would You Like To Buy?");
+      numberOfCoins = parseFloat(numberOfCoins);
+      const totalCost = costOfCoin * numberOfCoins;
+
+      if (totalCost <= 0 || totalCost === null || isNaN(totalCost)) {
+        alert("Congrats You Didn't Buy Any " + response.data.name);
+      }else if(totalCost > balance){
+        alert("Ewww, It Smells Like Broke In Here!");
+      }else{
+        newCoinData = coinData.map((values) => {
+          let newValues = {...values};
+          if(valueChangeId === values.key){
+            newValues.balance += totalCost;
+            setBalance(oldValue => formatPrice(oldValue - totalCost));
+          }
+          return newValues;
+        });
+      }
+      setCoinData(newCoinData);
+    }
+  }
+
+
+  const handleSellCoins = async(valueChangeId) => {
+    console.log("Sell");
+    let newCoinData = [];
+    let numberOfCoins;
+    const tickerUrl = `https://api.coinpaprika.com/v1/tickers/${valueChangeId}`;
+    const response = await axios.get(tickerUrl);
+    const costOfCoin = formatPrice(response.data.quotes.USD.price);
+
+    if(showBalance){
+      numberOfCoins = prompt("How Many Would You Like To Sell?");
+      numberOfCoins = parseFloat(numberOfCoins);
+      const totalCostSold = costOfCoin * numberOfCoins;
+
+      newCoinData = coinData.map((values) => {
+        let newValues = {...values};
+        if(valueChangeId === values.key){
+          if (totalCostSold <= 0 || totalCostSold === null || isNaN(totalCostSold)) {
+            alert("Put In A Real Amount To Sell, Stop Playin'!");
+          } else if (newValues.balance - totalCostSold >= 0) {
+            newValues.balance -= totalCostSold;
+            setBalance(oldValue => formatPrice(oldValue + totalCostSold));
+          } else {
+            alert("Easy There Turbo, You Ain't That Rich!");
+          }
+        }
+        return newValues;
+      });
+      setCoinData(newCoinData);
+    }
+  }
+
     return (
       <Div className="App">
 
@@ -99,11 +155,14 @@ function App(props) {
             amount={balance}
             showBalance={showBalance}
             handleBalanceVisibilityChange={handleBalanceVisibilityChange}
+            handleAddToBalance={handleAddToBalance}
           />
         <CoinList
             coinData={coinData}
             showBalance={showBalance}
             handleRefresh={handleRefresh}
+            handleBuyCoins={handleBuyCoins}
+            handleSellCoins={handleSellCoins}
           />
 
       </Div>

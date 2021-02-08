@@ -27,6 +27,8 @@ export default function CoinList(props) {
               //the ...value enumerates the key values pars as props, basically taking each value from the objects in order and placing it in the tbody
               <Coin key={ticker}
                     handleRefresh={props.handleRefresh}
+                    handleBuyCoins={props.handleBuyCoins}
+                    handleSellCoins={props.handleSellCoins}
                     name={name}
                     ticker={ticker}
                     showBalance={props.showBalance}

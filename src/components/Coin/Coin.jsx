@@ -18,6 +18,16 @@ const handleClick = (event) => {
 
 }
 
+const handleBuy = (event) => {
+  event.preventDefault();
+  props.handleBuyCoins(props.tickerId);
+}
+
+const handleSell = (event) => {
+  event.preventDefault();
+  props.handleSellCoins(props.tickerId);
+}
+
         return(
           <tr>
             <Td>{props.name}</Td>
@@ -27,6 +37,8 @@ const handleClick = (event) => {
             <Td>
               <form action="#" method="POST">
                 <button onClick={handleClick}>Refresh</button>
+                <button onClick={handleBuy}>Buy</button>
+                <button onClick={handleSell}>Sell</button>
               </form>
             </Td>
           </tr>

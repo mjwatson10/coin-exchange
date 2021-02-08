@@ -22,6 +22,9 @@ export default function AccountBalance(props){
           {content}
           <button onClick={props.handleBalanceVisibilityChange}>{buttonText}</button>
         </Section>
+        <Section>
+          <button onClick={props.handleAddToBalance}>Add Funds</button>
+        </Section>
       </>
     );
 }
