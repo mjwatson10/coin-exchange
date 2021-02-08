@@ -14,7 +14,7 @@
     "web-vitals": "^0.2.4"
   },
 
-  "homepage": "markjwatson.github.io/coin-exchange",
+  "homepage": "https://mjwatson10.github.io/coin-exchange/",
 
   "scripts": {
     "start": "react-scripts start",
